@@ -1,0 +1,7 @@
+*~
+*.o
+*.la
+*.a
+.deps
+autom4te.cache
+*.log
