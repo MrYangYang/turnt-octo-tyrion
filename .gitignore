@@ -14,3 +14,19 @@ src/dispensary
 src/*.a
 temp
 cscope.out
+# Object files
+*.ko
+
+# Libraries
+*.lib
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
