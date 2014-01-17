@@ -4,28 +4,31 @@
 
 Dispensary *dispensary_new(void)
 {
-    Dispensary *node;
+    Dispensary *node = NULL;
     node = (Dispensary *) g_malloc0(sizeof (Dispensary));
     return node;
 }
 
 Dispensary *dispensary_append_child (Dispensary *head, Dispensary *child)
 {
-    if(!head && !child)
-        return NULL;
-    if(!head)
-    {
+    if (!child)
+        return head;
+
+    if (!head) {
         child->id = 0;
         return child;
     }
 
     Dispensary *var = head;
     int max_id = 0;
-    for( ; head->next != NULL; head = head->next)
+    for( ; head->next; head = head->next)
     {
-        if(head->id>max_id)
+        if (head->id > max_id)
             max_id = head->id;
     }
+
+    if (head->id > max_id)
+        max_id = head->id;
     head->next = child;
     child->id = max_id + 1;
     return var;
@@ -107,9 +110,12 @@ Dispensary *dispensary_remove(Dispensary *head, int index)
     var = dispensary_get_child_at(head,index-1);
     Dispensary *temp = var->next;
     var->next = var->next->next;
-    g_free(temp->name);
-    g_free(temp->place);
-    g_free(temp->tel);
+    if (temp->name)
+        g_free(temp->name);
+    if (temp->place)
+        g_free(temp->place);
+    if (temp->tel)
+        g_free(temp->tel);
     medicine_remove_all(temp->mdc_head);
     g_free(temp);
     return head;
@@ -119,23 +125,18 @@ Dispensary *dispensary_remove_all(Dispensary *head)
 {
     if(head == NULL)
         return head;
-    Dispensary *temp;
-    for ( ; head->next != NULL ; )
-    {
-        temp = head;
-        head = head -> next;
-        g_free(temp->name);
-        g_free(temp->place);
-        g_free(temp->tel);
-        medicine_remove_all(temp->mdc_head);
+    Dispensary *temp = head;
+    while (head) {
+        head = head->next;
+        if (temp->name)
+            g_string_free(temp->name, TRUE);
+        if (temp->place)
+            g_string_free(temp->place, TRUE);
+        if (temp->tel)
+            g_string_free(temp->tel, TRUE);
         g_free(temp);
+        temp = head;
     }
-
-    g_free(head->name);
-    g_free(head->place);
-    g_free(head->tel);
-    medicine_remove_all(head->mdc_head);
-    g_free(head);
 
     return NULL;
 }
@@ -164,9 +165,12 @@ Dispensary *dispensary_remove_by_id (Dispensary *head, int id)
     Dispensary *temp = head;
     if(head->id == id)
     {
-        g_string_free(head->name, true);
-        g_string_free(head->place, true);
-        g_string_free(head->tel, true);
+        if (head->name)
+            g_string_free(head->name, true);
+        if (head->place)
+            g_string_free(head->place, true);
+        if (head->tel)
+            g_string_free(head->tel, true);
         pre = head;
         head = head->next;
         g_free(pre);
@@ -181,9 +185,12 @@ Dispensary *dispensary_remove_by_id (Dispensary *head, int id)
         if(head->id == id)
         {
             pre->next = head->next;
-            g_string_free(head->name, true);
-            g_string_free(head->place, true);
-            g_string_free(head->tel, true);
+            if (head->name)
+                g_string_free(head->name, true);
+            if (head->place)
+                g_string_free(head->place, true);
+            if (head->tel)
+                g_string_free(head->tel, true);
             g_free(head);
             return temp;
         }

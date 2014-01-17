@@ -6,12 +6,16 @@ AC_INIT([dispensary], 1.0)
 AC_CONFIG_SRCDIR([src/dispensary.c])
 # Checks for programs.
 AM_INIT_AUTOMAKE
+AC_PROG_RANLIB
 AC_PROG_CC
 PKG_PROG_PKG_CONFIG
 PKG_CHECK_MODULES(DEPS, [gtk+-2.0])
 AC_SUBST(DEPS_CFLAGS)
 AC_SUBST(DEPS_LIBS)
-AC_CONFIG_FILES(Makefile src/Makefile)
+PKG_CHECK_MODULES(CHKDEPS, [check])
+AC_SUBST(CHKDEPS_CFLAGS)
+AC_SUBST(CHKDEPS_LIBS)
+AC_CONFIG_FILES(Makefile src/Makefile tests/Makefile)
 # Checks for libraries.
 
 # Checks for header files.

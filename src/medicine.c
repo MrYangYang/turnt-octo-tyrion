@@ -31,46 +31,83 @@ Medicine *medicine_get_child_at(Medicine *head, int index)
 Medicine *medicine_remove(Medicine *head, int index)
 {
     /*****************************************
-    *   free the node,contain its members    *
-    *****************************************/
+     *   free the node,contain its members    *
+     *****************************************/
+    if (!head)
+        return head;
+
     Medicine *var;
     if(index == 0)
     {
         var = head;
         var = var->next;
-        g_free(head->name);
-        g_free(head->allow_key);
-        g_free(head->identify_key);
-        g_free(head->producer);
-        g_free(head->specification);
-        g_free(head->unit);
+        if (head->name)
+            g_string_free(head->name, TRUE);
+        if (head->allow_key)
+            g_string_free(head->allow_key, TRUE);
+        if (head->identify_key)
+            g_string_free(head->identify_key, TRUE);
+        if (head->producer)
+            g_string_free(head->producer, TRUE);
+        if (head->specification)
+            g_string_free(head->specification, TRUE);
+        if (head->unit)
+            g_string_free(head->unit, TRUE);
         history_remove_all(head->hist_head);
         g_free(head);
         return var;
     }
 
-    var = medicine_get_child_at (head,index-1);
-    Medicine *node = var->next;
-    var->next = var->next->next;
-    g_free(node->name);
-    g_free(node->allow_key);
-    g_free(node->identify_key);
-    g_free(node->producer);
-    g_free(node->specification);
-    g_free(node->unit);
+    index--;
+
+    Medicine *prev = head;
+    Medicine *temp = head->next;
+
+    for( ; index > 0 && temp; temp = temp->next, prev = prev->next);
+
+    if (index != 0 || !temp)
+        return head; // index out of bound
+    
+    prev->next = temp->next;
+    Medicine *node = temp;
     history_remove_all(node->hist_head);
+    if (node->name) {
+        g_string_free(node->name, TRUE);
+        node->name = NULL;
+    }
+    if (node->allow_key) {
+        g_string_free(node->allow_key, TRUE);
+        node->allow_key = NULL;
+    }
+    if (node->identify_key){
+        g_string_free(node->identify_key, TRUE);
+        node->identify_key = NULL;
+    }
+    if (node->producer) {
+        g_string_free(node->producer, TRUE);
+        node->producer = NULL;
+    }
+    if (node->specification) {
+        g_string_free(node->specification, TRUE);
+        node->specification = NULL;
+    }
+    if (node->unit) {
+        g_string_free(node->unit, TRUE);
+        node->unit = NULL;
+    }
+
     g_free(node);
     return head;
 }
 
 Medicine *medicine_append_with_data(Medicine *head,
-                                                            gchar *name,
-                                                            gchar *unit,
-                                                            gulong quantity,
-                                                            gchar *specification,
-                                                            gchar *allow_key,
-                                                            gchar *identify_key,
-                                                            gchar *producer)
+        gchar *name,
+        gchar *unit,
+        gulong quantity,
+        gchar *specification,
+        gchar *allow_key,
+        gchar *identify_key,
+        gchar *producer)
 {
     Medicine *node = medicine_new();
 
@@ -93,34 +130,45 @@ Medicine *medicine_remove_all(Medicine *head)
 {
     if(head == NULL)
         return head;
-    Medicine *temp;
-    for( ; head->next != NULL;  )
+    Medicine *temp = head;
+    while(head)
     {
+
+
         temp = head;
         head = head->next;
-        g_free(temp->name);
-        g_free(temp->allow_key);
-        g_free(temp->identify_key);
-        g_free(temp->producer);
-        g_free(temp->specification);
-        g_free(temp->unit);
-        history_remove_all(temp->hist_head);
+        
+        if (temp->name) {
+            g_string_free(temp->name, TRUE);
+            temp->name = NULL;
+        }
+        if (temp->allow_key) {
+            g_string_free(temp->allow_key, TRUE);
+            temp->allow_key = NULL;
+        }
+        if (temp->identify_key){
+            g_string_free(temp->identify_key, TRUE);
+            temp->identify_key = NULL;
+        }
+        if (temp->producer) {
+            g_string_free(temp->producer, TRUE);
+            temp->producer = NULL;
+        }
+        if (temp->specification) {
+            g_string_free(temp->specification, TRUE);
+            temp->specification = NULL;
+        }
+        if (temp->unit) {
+            g_string_free(temp->unit, TRUE);
+            temp->unit = NULL;
+        }
+        temp->hist_head = history_remove_all(temp->hist_head);
         g_free(temp);
     }
-
-    g_free(head->name);
-    g_free(head->allow_key);
-    g_free(head->identify_key);
-    g_free(head->producer);
-    g_free(head->specification);
-    g_free(head->unit);
-    history_remove_all(head->hist_head);
-    g_free(head);
-
     return NULL;
 }
 
-Medicine *medicine_remove_by_identify_key(Medicine *head, gchar *identify_key)
+Medicine *medicine_remove_by_identify_key(Medicine *head, const gchar *identify_key)
 {
     Medicine *temp = head;
     Medicine *pre;
@@ -128,15 +176,36 @@ Medicine *medicine_remove_by_identify_key(Medicine *head, gchar *identify_key)
     if(!head)
         return NULL;
 
-    if(g_strcmp0(temp->identify_key->str, identify_key) == 0)
+    if(temp->identify_key &&
+            g_strcmp0(temp->identify_key->str, identify_key) == 0)
     {
-        g_string_free(temp->name, true);
-        g_string_free(temp->unit, true);
-        g_string_free(temp->specification, true);
-        g_string_free(temp->allow_key, true);
-        g_string_free(temp->identify_key, true);
-        g_string_free(temp->producer, true);
+        if (temp->name) {
+            g_string_free(temp->name, TRUE);
+            temp->name = NULL;
+        }
+        if (temp->allow_key) {
+            g_string_free(temp->allow_key, TRUE);
+            temp->allow_key = NULL;
+        }
+        if (temp->identify_key){
+            g_string_free(temp->identify_key, TRUE);
+            temp->identify_key = NULL;
+        }
+        if (temp->producer) {
+            g_string_free(temp->producer, TRUE);
+            temp->producer = NULL;
+        }
+        if (temp->specification) {
+            g_string_free(temp->specification, TRUE);
+            temp->specification = NULL;
+        }
+        if (temp->unit) {
+            g_string_free(temp->unit, TRUE);
+            temp->unit = NULL;
+        }
+
         head = head->next;
+        history_remove_all(temp->hist_head);
         g_free(temp);
         return head;
     }
@@ -144,25 +213,43 @@ Medicine *medicine_remove_by_identify_key(Medicine *head, gchar *identify_key)
     pre = temp;
     temp = temp->next;
 
-    while(temp != NULL)
+    while(temp)
     {
-        if(g_strcmp0(temp->identify_key->str, identify_key) == 0)
+        if(temp->identify_key && 
+                g_strcmp0(temp->identify_key->str, identify_key) == 0)
         {
-            g_string_free(temp->name,true);
-            g_string_free(temp->unit,true);
-            g_string_free(temp->specification,true);
-            g_string_free(temp->allow_key,true);
-            g_string_free(temp->identify_key,true);
-            g_string_free(temp->producer,true);
-
+            if (temp->name) {
+                g_string_free(temp->name, TRUE);
+                temp->name = NULL;
+            }
+            if (temp->allow_key) {
+                g_string_free(temp->allow_key, TRUE);
+                temp->allow_key = NULL;
+            }
+            if (temp->identify_key){
+                g_string_free(temp->identify_key, TRUE);
+                temp->identify_key = NULL;
+            }
+            if (temp->producer) {
+                g_string_free(temp->producer, TRUE);
+                temp->producer = NULL;
+            }
+            if (temp->specification) {
+                g_string_free(temp->specification, TRUE);
+                temp->specification = NULL;
+            }
+            if (temp->unit) {
+                g_string_free(temp->unit, TRUE);
+                temp->unit = NULL;
+            }
             pre->next = temp->next;
+            temp->hist_head = history_remove_all(temp->hist_head);
             g_free(temp);
             return head;
         }
         pre = pre->next;
         temp = temp->next;
     };
-
     return head;
 }
 

@@ -65,7 +65,10 @@ History *history_remove_all(History *head)
     History *temp;
     while(head)
     {
-        g_string_free(head->date, true);
+        if(head->date) {
+            g_string_free(head->date, true);
+            head->date = NULL;
+        }
         temp = head;
         head = head->next;
         g_free(temp);

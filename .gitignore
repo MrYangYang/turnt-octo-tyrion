@@ -5,3 +5,12 @@
 .deps
 autom4te.cache
 *.log
+tags
+tests/tags
+tests/tests
+tests/*.o
+src/*.o
+src/dispensary
+src/*.a
+temp
+cscope.out

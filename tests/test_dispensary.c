@@ -1,191 +1,207 @@
 #include "../src/dispensary.h"
-#include <CUnit/CUnit.h>
-#include <CUnit/Basic.h>
-#include <CUnit/CUError.h>
 #include <glib.h>
+#include <check.h>
+#include "dsp_test.h"
 
-void test_dispensary_new(void)
+static Dispensary *head;
+static Dispensary *child_1;
+static Dispensary *child_2;
+
+static void setup(void)
 {
-    Dispensary *dispensary = dispensary_new();
-    CU_ASSERT(dispensary != NULL);
-    CU_ASSERT(dispensary->name == NULL);
-    CU_ASSERT(dispensary->place == NULL);
-    CU_ASSERT(dispensary->tel == NULL);
-    CU_ASSERT(dispensary->next == NULL);
-    CU_ASSERT(dispensary->mdc_head == NULL);
-    g_free(dispensary);
+    ck_assert_ptr_eq(head, NULL);
+    ck_assert_ptr_eq(child_1, NULL);
+    ck_assert_ptr_eq(child_2, NULL);
+
+    head = dispensary_new();
+    child_1 = dispensary_new();
+    child_2 = dispensary_new();
+
+    ck_assert_ptr_ne(head, NULL);
+    ck_assert_ptr_ne(child_1, NULL);
+    ck_assert_ptr_ne(child_2, NULL);
 }
 
-void test_dispensary_new_with_data(void)
+static void teardown(void)
+{
+    if (head) {
+        g_free(head);
+        head = NULL;
+    }
+
+    if (child_1) {
+        g_free(child_1);
+        child_1 = NULL;
+    }
+
+    if (child_2) {
+        g_free(child_2);
+        child_2 = NULL;
+    }
+}
+
+START_TEST (test_dispensary_new)
+{
+    ck_assert_ptr_ne(head, NULL);
+    ck_assert_ptr_eq(head->name, NULL);
+    ck_assert_ptr_eq(head->place, NULL);
+    ck_assert_ptr_eq(head->tel, NULL);
+    ck_assert_ptr_eq(head->next, NULL);
+    ck_assert_ptr_eq(head->mdc_head, NULL);
+}
+END_TEST
+
+START_TEST (test_dispensary_new_with_data)
 {
     Dispensary *dispensary = dispensary_new();
     Dispensary *next = NULL;
-    dispensary = dispensary_new_with_data(dispensary, "name", "place",
+    head = dispensary_new_with_data(head, "name", "place",
             "tel");
-    next = dispensary->next;
-    CU_ASSERT_NOT_EQUAL(next, NULL);
-    CU_ASSERT_STRING_EQUAL(next->name->str, "name");
-    CU_ASSERT_STRING_EQUAL(next->place->str, "place");
-    CU_ASSERT_STRING_EQUAL(next->tel->str, "tel");
+    next = head->next;
+    ck_assert_ptr_ne(next, NULL);
+    ck_assert_str_eq(next->name->str, "name");
+    ck_assert_str_eq(next->place->str, "place");
+    ck_assert_str_eq(next->tel->str, "tel");
 
     g_string_free(next->name, TRUE);
     g_string_free(next->place, TRUE);
     g_string_free(next->tel, TRUE);
 
-    g_free(next);
     g_free(dispensary);
 }
+END_TEST
 
-void test_dispensary_append_child(void)
+START_TEST (test_dispensary_append_child)
 {
-    Dispensary *dispensary = dispensary_new();
-    Dispensary *child = dispensary_new();
-    CU_ASSERT_NOT_EQUAL(dispensary, NULL);
-    CU_ASSERT_NOT_EQUAL(child, NULL);
-    dispensary = dispensary_append_child(dispensary, child);
-    CU_ASSERT_EQUAL(dispensary->next, child);
+    head = dispensary_append_child(head, child_1);
+    head = dispensary_append_child(head, child_2);
+    ck_assert_ptr_eq(head->next, child_1);
+    ck_assert_ptr_eq(head->next->next, child_2);
 }
+END_TEST
 
-void test_dispensary_get_child_at(void)
+START_TEST (test_dispensary_get_child_at)
 {
-    Dispensary *dispensary = dispensary_new();
-    CU_ASSERT(dispensary);
-    Dispensary *child_1 = dispensary_new();
-    Dispensary *child_2 = dispensary_new();
-    CU_ASSERT(child_1);
-    CU_ASSERT(child_2);
-    dispensary = dispensary_append_child(dispensary, child_1);
-    dispensary = dispensary_append_child(dispensary, child_2);
+    head = dispensary_append_child(head, child_1);
+    head = dispensary_append_child(head, child_2);
 
-    CU_ASSERT_EQUAL(dispensary_get_child_at(dispensary, 0), dispensary);
-    CU_ASSERT_EQUAL(dispensary_get_child_at(dispensary, 1), child_1);
-    CU_ASSERT_EQUAL(dispensary_get_child_at(dispensary, 2), child_2);
-
-    g_free(dispensary);
-    g_free(child_1);
-    g_free(child_2);
+    ck_assert_ptr_eq(dispensary_get_child_at(head, 0), head);
+    ck_assert_ptr_eq(dispensary_get_child_at(head, 1), child_1);
+    ck_assert_ptr_eq(dispensary_get_child_at(head, 2), child_2);
 }
+END_TEST
 
-void test_dispensary_replace_with(void)
+START_TEST (test_dispensary_replace_with)
 {
-    Dispensary *head = dispensary_new();
-    Dispensary *child = dispensary_new();
-    Dispensary *child_repl = dispensary_new();
-    CU_ASSERT(head);
-    CU_ASSERT(child);
-    CU_ASSERT(child_repl);
+    head = dispensary_append_child(head, child_1);
+    ck_assert_ptr_eq(head->next, child_1);
 
-    head = dispensary_append_child(head, child);
-    CU_ASSERT_EQUAL(head->next, child);
-
-    head = dispensary_replace_with(head, 1, child_repl);
-    CU_ASSERT_EQUAL(head->next, child_repl);
-
-    g_free(head);
-    g_free(child);
-    g_free(child_repl);
+    head = dispensary_replace_with(head, 1, child_2);
+    ck_assert_ptr_eq(head->next, child_2);
 }
+END_TEST
 
-void test_dispensary_remove(void)
+START_TEST (test_dispensary_remove)
 {
-    Dispensary *dispensary = dispensary_new();
-    Dispensary *child = dispensary_new();
-    CU_ASSERT_FALSE_FATAL(dispensary);
-    CU_ASSERT_FALSE_FATAL(child);
-
-    dispensary = dispensary_append_child(dispensary, child);
-    CU_ASSERT_EQUAL(dispensary->next, child);
-
-    dispensary = dispensary_remove(dispensary, 1);
-    CU_ASSERT_EQUAL(dispensary->next, NULL);
-
-    g_free(dispensary);
-    g_free(child);
+    head = dispensary_append_child(head, child_1);
+    ck_assert_ptr_eq(head->next, child_1);
+    head = dispensary_remove(head, 1);
+    ck_assert_ptr_ne(head, NULL);
+    ck_assert_ptr_eq(head->next, NULL);
 }
+END_TEST
 
-void test_dispensary_remove_all(void)
+
+START_TEST (test_dispensary_remove_all)
 {
-    Dispensary *dispensary = dispensary_new();
-    Dispensary *child_1 = dispensary_new();
-    Dispensary *child_2 = dispensary_new();
-    CU_ASSERT_FALSE_FATAL(dispensary);
-    CU_ASSERT_FALSE_FATAL(child_1);
-    CU_ASSERT_FALSE_FATAL(child_2);
+    head = dispensary_append_child(head, child_1);
+    head = dispensary_append_child(head, child_2);
 
-    dispensary = dispensary_append_child(dispensary, child_1);
-    dispensary = dispensary_append_child(dispensary, child_2);
+    ck_assert_ptr_ne(head, NULL);
+    ck_assert_ptr_ne(head->next, NULL);
+    ck_assert_ptr_eq(head->next, child_1);
+    ck_assert_ptr_ne(head->next->next, NULL);
+    ck_assert_ptr_eq(head->next->next, child_2);
 
-    CU_ASSERT_EQUAL(dispensary->next, child_1);
-    CU_ASSERT_EQUAL(dispensary->next->next, child_2);
-
-    // because remove_all has free mem, so we don't need
-    // to free mem manually.
-    dispensary = dispensary_remove_all(dispensary);
-    CU_ASSERT_EQUAL(dispensary, NULL);
+    head = dispensary_remove_all(head);
+    ck_assert_ptr_eq(head, NULL);
 }
+END_TEST
 
-// caution. Id is given by modules, do not modify it in your code.
-void test_dispensary_get_child_by_id()
+START_TEST (test_dispensary_get_child_by_id)
 {
-    Dispensary *dispensary = dispensary_new();
-    Dispensary *child = dispensary_new();
-    CU_ASSERT_FALSE_FATAL(dispensary);
-    CU_ASSERT_FALSE_FATAL(child);
-
-    child->id = 2;
-    CU_ASSERT_EQUAL(child->id, 2);
-    dispensary = dispensary_append_child(dispensary, child);
-    CU_ASSERT_EQUAL(dispensary->next, child);
-    CU_ASSERT_EQUAL(dispensary_get_child_by_id(dispensary, 2), child);
-    CU_ASSERT_EQUAL(child->id, 2);
-
-    g_free(child);
-    g_free(dispensary);
-}
-
-void test_dispensary_remove_by_id(void)
-{
-    Dispensary *dispensary = dispensary_new();
-    Dispensary *child_1 = dispensary_new();
-    Dispensary *child_2 = dispensary_new();
-    CU_ASSERT_FALSE_FATAL(dispensary);
-    CU_ASSERT_FALSE_FATAL(child_1);
-    CU_ASSERT_FALSE_FATAL(child_2);
-
     child_1->id = 1;
     child_2->id = 2;
-    dispensary = dispensary_append_child(dispensary, child_1);
-    dispensary = dispensary_append_child(dispensary, child_2);
-    CU_ASSERT_EQUAL(dispensary->next, child_1);
-    CU_ASSERT_EQUAL(child_1->next, child_2);
-    
-    dispensary = dispensary_remove_by_id(dispensary, 1);
-    CU_ASSERT_EQUAL(dispensary->next, child_2);
-
-    // remove function allready free memory of child_1
-    g_free(dispensary);
-    g_free(child_2);
+    ck_assert_int_eq(child_1->id, 1);
+    ck_assert_int_eq(child_2->id, 2);
+    head = dispensary_append_child(head, child_1);
+    head = dispensary_append_child(head, child_2);
+    ck_assert_ptr_eq(head->next, child_1);
+    ck_assert_ptr_eq(dispensary_get_child_by_id(head, 1), child_1);
+    ck_assert_ptr_eq(dispensary_get_child_by_id(head, 2), child_2);
+    ck_assert_int_eq(child_1->id, 1);
+    ck_assert_int_eq(child_2->id, 2);
 }
+END_TEST
 
-void test_dispensary_append_with_data()
+START_TEST (test_dispensary_remove_by_id)
+{
+    child_1->id = 1;
+    child_2->id = 2;
+    head = dispensary_append_child(head, child_1);
+    head = dispensary_append_child(head, child_2);
+    ck_assert_ptr_eq(head->next, child_1);
+    ck_assert_ptr_eq(child_1->next, child_2);
+    
+    head = dispensary_remove_by_id(head, 1);
+    ck_assert_ptr_eq(head->next, child_2);
+}
+END_TEST
+
+START_TEST (test_dispensary_append_with_data)
 {
     Dispensary *child;
-    Dispensary *dispensary = dispensary_new();
-    CU_ASSERT_FALSE_FATAL(dispensary);
-    
     int child_id = 2;
-    dispensary = dispensary_append_with_data(dispensary, 
+    head = dispensary_append_with_data(head, 
             "child_name",
             "child_place",
             "child_tel",
             child_id);
-    child = dispensary->next;
-    CU_ASSERT_EQUAL(child->id, child_id);
-    CU_ASSERT_STRING_EQUAL(child->name->str, "child_name");
-    CU_ASSERT_STRING_EQUAL(child->place->str, "child_place");
-    CU_ASSERT_STRING_EQUAL(child->tel->str, "child_tel");
-
-    g_free(dispensary);
+    child = head->next;
+    ck_assert_ptr_ne(child, NULL);
+    ck_assert_int_eq(child->id, child_id);
+    ck_assert_str_eq(child->name->str, "child_name");
+    ck_assert_str_eq(child->place->str, "child_place");
+    ck_assert_str_eq(child->tel->str, "child_tel");
+    
+    g_string_free(child->name, TRUE);
+    g_string_free(child->place, TRUE);
+    g_string_free(child->tel, TRUE);
     g_free(child);
 }
+END_TEST
+
+Suite *dispensary_suite(void)
+{
+    Suite *s = suite_create("Dispensary");
+    TCase *tc = tcase_create("methods");
+    tcase_add_checked_fixture(tc, setup, teardown);
+    
+    /* add tests */
+    tcase_add_test(tc, test_dispensary_new);
+    tcase_add_test(tc, test_dispensary_new_with_data);
+    tcase_add_test(tc, test_dispensary_append_child);
+    tcase_add_test(tc, test_dispensary_get_child_at);
+    tcase_add_test(tc, test_dispensary_replace_with);
+    tcase_add_test(tc, test_dispensary_remove);
+    tcase_add_test(tc, test_dispensary_remove_all);
+    tcase_add_test(tc, test_dispensary_get_child_by_id);
+    tcase_add_test(tc, test_dispensary_remove_by_id);
+    tcase_add_test(tc, test_dispensary_append_with_data);
+
+    /* add test case to suite */
+    suite_add_tcase(s, tc);
+    return s;
+}
+
 

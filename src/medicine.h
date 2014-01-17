@@ -34,7 +34,7 @@ Medicine    *medicine_append_child         (Medicine *head, Medicine *child);
 Medicine    *medicine_get_child_at           (Medicine *head, int index);
 Medicine    *medicine_remove                  (Medicine *head, int index);
 Medicine    *medicine_remove_all             (Medicine *head);
-Medicine    *medicine_remove_by_identify_key        (Medicine *head, gchar *identify_key);
+Medicine    *medicine_remove_by_identify_key        (Medicine *head, const gchar *identify_key);
 Medicine    *medicine_get_child_by_identify_key      (Medicine *head, const gchar *identify_key);
 
 

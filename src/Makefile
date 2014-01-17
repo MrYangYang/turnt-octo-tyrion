@@ -15,6 +15,7 @@
 
 
 
+
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
 am__make_running_with_option = \
   case $${target_option-} in \
@@ -87,14 +88,25 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
+LIBRARIES = $(noinst_LIBRARIES)
+AR = ar
+ARFLAGS = cru
+AM_V_AR = $(am__v_AR_$(V))
+am__v_AR_ = $(am__v_AR_$(AM_DEFAULT_VERBOSITY))
+am__v_AR_0 = @echo "  AR      " $@;
+am__v_AR_1 = 
+libdsp_a_AR = $(AR) $(ARFLAGS)
+libdsp_a_LIBADD =
+am_libdsp_a_OBJECTS = dispensary.$(OBJEXT) medicine.$(OBJEXT) \
+	history.$(OBJEXT)
+libdsp_a_OBJECTS = $(am_libdsp_a_OBJECTS)
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_dispensary_OBJECTS = callbacks.$(OBJEXT) data_io.$(OBJEXT) \
-	dispensary.$(OBJEXT) history.$(OBJEXT) interface.$(OBJEXT) \
-	main.$(OBJEXT) medicine.$(OBJEXT) my_type.$(OBJEXT)
+	interface.$(OBJEXT) main.$(OBJEXT) my_type.$(OBJEXT)
 dispensary_OBJECTS = $(am_dispensary_OBJECTS)
 am__DEPENDENCIES_1 =
-dispensary_DEPENDENCIES = $(am__DEPENDENCIES_1)
+dispensary_DEPENDENCIES = $(am__DEPENDENCIES_1) libdsp.a
 AM_V_P = $(am__v_P_$(V))
 am__v_P_ = $(am__v_P_$(AM_DEFAULT_VERBOSITY))
 am__v_P_0 = false
@@ -123,8 +135,8 @@ AM_V_CCLD = $(am__v_CCLD_$(V))
 am__v_CCLD_ = $(am__v_CCLD_$(AM_DEFAULT_VERBOSITY))
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(dispensary_SOURCES)
-DIST_SOURCES = $(dispensary_SOURCES)
+SOURCES = $(libdsp_a_SOURCES) $(dispensary_SOURCES)
+DIST_SOURCES = $(libdsp_a_SOURCES) $(dispensary_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -159,7 +171,9 @@ AUTOMAKE = ${SHELL} /home/breeze/Documents/dispensary/missing automake-1.14
 AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
-CFLAGS = -g -O2
+CFLAGS = -g -Wall
+CHKDEPS_CFLAGS = -pthread 
+CHKDEPS_LIBS = -lcheck 
 CPP = gcc -E
 CPPFLAGS = 
 CYGPATH_W = echo
@@ -196,6 +210,7 @@ PATH_SEPARATOR = :
 PKG_CONFIG = /usr/bin/pkg-config
 PKG_CONFIG_LIBDIR = 
 PKG_CONFIG_PATH = 
+RANLIB = ranlib
 SET_MAKE = 
 SHELL = /bin/sh
 STRIP = 
@@ -242,17 +257,19 @@ target_alias =
 top_build_prefix = ../
 top_builddir = ..
 top_srcdir = ..
+noinst_LIBRARIES = libdsp.a
 dispensary_SOURCES = callbacks.c \
 					 data_io.c \
-					 dispensary.c \
-					 history.c \
 					 interface.c \
 					 main.c \
-					 medicine.c \
 					 my_type.c
 
+libdsp_a_SOURCES = dispensary.c \
+				   medicine.c \
+				   history.c 
+
 AM_CFLAGS = $(DEPS_CFLAGS)
-dispensary_LDADD = $(DEPS_LIBS)
+dispensary_LDADD = $(DEPS_LIBS) libdsp.a
 all: all-am
 
 .SUFFIXES:
@@ -287,6 +304,14 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
+
+clean-noinstLIBRARIES:
+	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+
+libdsp.a: $(libdsp_a_OBJECTS) $(libdsp_a_DEPENDENCIES) $(EXTRA_libdsp_a_DEPENDENCIES) 
+	$(AM_V_at)-rm -f libdsp.a
+	$(AM_V_AR)$(libdsp_a_AR) libdsp.a $(libdsp_a_OBJECTS) $(libdsp_a_LIBADD)
+	$(AM_V_at)$(RANLIB) libdsp.a
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
@@ -447,7 +472,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(PROGRAMS)
+all-am: Makefile $(LIBRARIES) $(PROGRAMS)
 installdirs:
 	for dir in "$(DESTDIR)$(bindir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
@@ -484,7 +509,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
+clean-am: clean-binPROGRAMS clean-generic clean-noinstLIBRARIES \
+	mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -554,18 +580,18 @@ uninstall-am: uninstall-binPROGRAMS
 .MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am check check-am clean \
-	clean-binPROGRAMS clean-generic cscopelist-am ctags ctags-am \
-	distclean distclean-compile distclean-generic distclean-tags \
-	distdir dvi dvi-am html html-am info info-am install \
-	install-am install-binPROGRAMS install-data install-data-am \
-	install-dvi install-dvi-am install-exec install-exec-am \
-	install-html install-html-am install-info install-info-am \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-compile mostlyclean-generic pdf pdf-am \
-	ps ps-am tags tags-am uninstall uninstall-am \
-	uninstall-binPROGRAMS
+	clean-binPROGRAMS clean-generic clean-noinstLIBRARIES \
+	cscopelist-am ctags ctags-am distclean distclean-compile \
+	distclean-generic distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am install-binPROGRAMS \
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic pdf pdf-am ps ps-am tags tags-am uninstall \
+	uninstall-am uninstall-binPROGRAMS
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

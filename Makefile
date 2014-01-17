@@ -195,7 +195,9 @@ AUTOMAKE = ${SHELL} /home/breeze/Documents/dispensary/missing automake-1.14
 AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
-CFLAGS = -g -O2
+CFLAGS = -g -Wall
+CHKDEPS_CFLAGS = -pthread 
+CHKDEPS_LIBS = -lcheck 
 CPP = gcc -E
 CPPFLAGS = 
 CYGPATH_W = echo
@@ -232,6 +234,7 @@ PATH_SEPARATOR = :
 PKG_CONFIG = /usr/bin/pkg-config
 PKG_CONFIG_LIBDIR = 
 PKG_CONFIG_PATH = 
+RANLIB = ranlib
 SET_MAKE = 
 SHELL = /bin/sh
 STRIP = 
@@ -278,7 +281,8 @@ target_alias =
 top_build_prefix = 
 top_builddir = .
 top_srcdir = .
-SUBDIRS = src
+SUBDIRS = src tests 
+AUTOMAKE_OPTIONS = foreign
 all: all-recursive
 
 .SUFFIXES:
